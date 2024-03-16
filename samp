@@ -1,0 +1,101 @@
+#!/bin/bash
+clear
+releaseOS=$(gawk -F= '/^NAME/{print $2}' /etc/os-release)
+releaseArch=$(uname -m)
+serverRunning=$(ps cax | grep samp03svr)
+osRoot="apt"
+randomRCON=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
+if [ -d ~/.samp ]; then
+    if [[ $serverRunning == *"samp03svr"* ]]; then
+      while true; do
+        read -p "   SA-MP Server is already running. Do you want to stop it? [y/n]" yn
+        case $yn in
+          [Yy]* ) pkill samp03svr; pkill samp03svr; echo -e "\033[32m   Server has been stopped.\033[37m"; break;;
+          [Nn]* ) exit;;
+          * ) echo "Please answer yes or no."
+        esac
+      done
+    else
+      echo -e "\033[32m   Server has been started.\033[37m"
+      cd ~/.samp/samp03
+      ./samp03svr >/dev/null 2>&1 &
+    fi
+  exit
+fi
+echo -e "\033[37m"
+echo " ╔═══════════════════════════════════════════════════════╗"
+echo " ║ Bart's Linux Tutorials ║ SA-MP Server Installer       ║"
+echo " ╚═══════════════════════════════════════════════════════╝"
+echo " ╔═══════════════════════════════════════════════════════╗"
+echo -e " ║ ! ║                   Use \033[32m./samp \033[37mto start/stop server ║"
+echo " ╚═══════════════════════════════════════════════════════╝"
+echo " "
+echo -e " * Checking if Fedora / CentOS / Debian / Ubuntu.."
+if [[ $releaseOS == *"Fedora"* ]]; then
+  echo -e "\033[32m   Fedora"
+  echo -e "\033[37m"
+  osRoot="yum"
+elif [[ $releaseOS == *"CentOS"* ]]; then
+  echo -e "\033[32m   CentOS"
+  echo -e "\033[37m"
+  osRoot="yum"
+elif [[ $releaseOS == *"Debian"* ]]; then
+  echo -e "\033[32m   Debian"
+  echo -e "\033[37m"
+  osRoot="apt"
+elif [[ $releaseOS == *"Ubuntu"* ]]; then
+  echo -e "\033[32m   Ubuntu"
+  echo -e "\033[37m"
+  osRoot="apt"
+else
+  echo -e "\033[31m   Unsupported :("
+  exit
+fi
+echo -e " * Checking if 32bit or 64bit.. "
+if [ $releaseArch == "x86_64" ]; then
+  echo -e "\033[32m   64bit"
+  echo -e "\033[37m"
+elif [ $releaseArch == "i686" ]; then
+  echo -e "\033[32m   32bit"
+  echo -e "\033[37m"
+fi
+if [ $releaseArch == "x86_64" ]; then
+  echo -e " * Installing 32-bit support libraries.. "
+  if [ $osRoot == "yum" ]; then
+    yum -y install glibc.i686 libstdc++.i686 >/dev/null
+  elif [ $osRoot == "apt"]; then
+    apt-get -y install libc6-i386 lib32stdc++6 >/dev/null
+  fi
+  echo -e "\033[32m   Done!"
+  echo -e "\033[37m"
+fi
+echo -e " * Checking if wget is installed.. "
+if [ $osRoot == "yum" ]; then
+  yum -y install wget > /dev/null
+elif [ $osRoot == "apt" ]; then
+  apt-get -y install wget > /dev/null
+fi
+echo -e "\033[32m   Done!"
+echo -e "\033[37m"
+echo -e " * Creating install directory.. "
+mkdir ~/.samp
+echo -e "\033[32m   Done!"
+echo -e "\033[37m"
+echo -e " * Downloading SA-MP Server.. "
+cd ~/.samp
+wget -q 'http://archive.org/download/sa-mp-0.3.dl/samp03DLsvr_R1.tar.gz'
+echo -e "\033[32m   Done!"
+echo -e "\033[37m"
+echo -e " * Unpacking server files.. "
+tar -zxf samp03DLsvr_R1.tar.gz
+rm samp03DLsvr_R1.tar.gz
+echo -e "\033[32m   Done!"
+echo -e "\033[37m"
+echo -e " * Starting server for the first time.. "
+echo -e "   \033[31mNOTE: YOUR RCON PASSWORD IS: $randomRCON"
+echo -e "\033[37m"
+sed -i "s/changeme/$randomRCON/g" ~/.samp/samp03/server.cfg
+cd ~/.samp/samp03
+./samp03svr >/dev/null 2>&1 &
+echo -e "\033[32m   Done!"
+echo -e "\033[37m"
