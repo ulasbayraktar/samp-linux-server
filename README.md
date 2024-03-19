@@ -1,6 +1,6 @@
 # SAMP Linux Server Installer
 
-## Requirements:
+## Requirements
 
 wget installed if you don't have root privileges.
 
